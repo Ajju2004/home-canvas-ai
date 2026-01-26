@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { 
   Upload, 
@@ -84,16 +85,42 @@ const Dashboard = () => {
 
     setIsGenerating(true);
     
-    // Simulate AI processing (replace with actual API call)
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-interior', {
+        body: {
+          image: uploadedImage,
+          roomType,
+          designLevel,
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message || 'Failed to generate design');
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
       navigate("/result", {
         state: {
           originalImage: uploadedImage,
+          generatedImage: data.generatedImage,
+          description: data.description,
           roomType,
           designLevel,
         },
       });
-    }, 2000);
+    } catch (error) {
+      console.error('Generation error:', error);
+      toast({
+        title: "Generation failed",
+        description: error instanceof Error ? error.message : "Could not generate design. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const clearImage = () => {

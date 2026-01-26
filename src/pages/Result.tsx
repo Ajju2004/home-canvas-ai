@@ -2,19 +2,12 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, RotateCcw, Sparkles, CheckCircle2 } from "lucide-react";
 import { useEffect, useState } from "react";
-
-// Placeholder generated images based on room type and design level
-const getGeneratedImage = (roomType: string, designLevel: string): string => {
-  // In production, this would be the AI-generated image
-  // For demo, we'll show a placeholder with text
-  return "";
-};
+import { toast } from "@/hooks/use-toast";
 
 const Result = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { originalImage, roomType, designLevel } = location.state || {};
-  const [showComparison, setShowComparison] = useState(false);
+  const { originalImage, generatedImage, description, roomType, designLevel } = location.state || {};
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -23,10 +16,10 @@ const Result = () => {
       return;
     }
     
-    // Simulate loading
+    // Small delay for smooth animation
     setTimeout(() => {
       setIsLoaded(true);
-    }, 1500);
+    }, 500);
   }, [originalImage, navigate]);
 
   if (!originalImage) {
@@ -35,6 +28,29 @@ const Result = () => {
 
   const roomLabel = roomType?.replace("-", " ");
   const levelLabel = designLevel?.charAt(0).toUpperCase() + designLevel?.slice(1);
+
+  const handleDownload = () => {
+    if (!generatedImage) {
+      toast({
+        title: "No image available",
+        description: "Generated image is not available for download",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const link = document.createElement('a');
+    link.href = generatedImage;
+    link.download = `interior-design-${roomType}-${designLevel}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Download started",
+      description: "Your design is being downloaded",
+    });
+  };
 
   return (
     <div className="min-h-screen gradient-soft">
@@ -110,26 +126,30 @@ const Result = () => {
                 <div className="w-full aspect-[4/3] flex items-center justify-center bg-muted/50">
                   <div className="text-center">
                     <div className="w-12 h-12 border-3 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
-                    <p className="text-sm text-muted-foreground">Applying AI magic...</p>
+                    <p className="text-sm text-muted-foreground">Loading design...</p>
                   </div>
                 </div>
+              ) : generatedImage ? (
+                <img 
+                  src={generatedImage} 
+                  alt="AI Generated interior design" 
+                  className="w-full aspect-[4/3] object-cover"
+                />
               ) : (
                 <div className="w-full aspect-[4/3] relative bg-gradient-to-br from-primary/5 to-accent/10">
                   <img 
                     src={originalImage} 
-                    alt="Generated design" 
+                    alt="Original room" 
                     className="w-full h-full object-cover opacity-60"
                   />
-                  {/* Overlay to simulate AI transformation */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center p-6 bg-card/90 backdrop-blur-sm rounded-2xl shadow-lg">
                       <Sparkles className="w-10 h-10 text-primary mx-auto mb-3" />
                       <p className="font-heading font-bold text-foreground mb-1">
-                        {levelLabel} {roomLabel} Design
+                        Generation Failed
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Connect an AI API to see real transformations
+                        Please try again
                       </p>
                     </div>
                   </div>
@@ -170,15 +190,21 @@ const Result = () => {
           </Button>
           <Button
             className="h-12 px-6 rounded-xl gradient-warm text-primary-foreground shadow-warm hover:shadow-lg transition-all"
-            onClick={() => {
-              // In production, implement download functionality
-              alert("Download feature - Connect to AI API for full functionality");
-            }}
+            onClick={handleDownload}
+            disabled={!generatedImage}
           >
             <Download className="w-4 h-4 mr-2" />
             Download Design
           </Button>
         </div>
+
+        {/* AI Description */}
+        {description && (
+          <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 animate-fade-in" style={{ animationDelay: "0.5s" }}>
+            <h3 className="font-heading font-semibold text-foreground mb-3">AI Design Notes</h3>
+            <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
+          </div>
+        )}
       </main>
     </div>
   );
