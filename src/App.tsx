@@ -4,6 +4,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import HomePage from "./pages/HomePage";
+import ScopePage from "./pages/ScopePage";
+import TechStackPage from "./pages/TechStackPage";
+import TeamPage from "./pages/TeamPage";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Result from "./pages/Result";
@@ -14,7 +18,7 @@ const queryClient = new QueryClient();
 // Protected Route wrapper
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <>{children}</> : <Navigate to="/" replace />;
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
 const AppRoutes = () => {
@@ -22,7 +26,16 @@ const AppRoutes = () => {
   
   return (
     <Routes>
-      <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
+      {/* Public Pages */}
+      <Route path="/" element={<HomePage />} />
+      <Route path="/scope" element={<ScopePage />} />
+      <Route path="/tech-stack" element={<TechStackPage />} />
+      <Route path="/team" element={<TeamPage />} />
+      
+      {/* Auth */}
+      <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
+      
+      {/* Protected Routes */}
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <Dashboard />
@@ -33,6 +46,7 @@ const AppRoutes = () => {
           <Result />
         </ProtectedRoute>
       } />
+      
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
