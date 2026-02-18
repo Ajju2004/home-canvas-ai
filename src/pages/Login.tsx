@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import AnimatedMonkey from "@/components/AnimatedMonkey";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { Mail, Lock, Sparkles } from "lucide-react";
+import { z } from "zod";
+
+const loginSchema = z.object({
+  email: z.string().trim().email("Invalid email address").max(255),
+  password: z.string().min(1, "Password is required"),
+});
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -14,34 +20,39 @@ const Login = () => {
   const [isUsernameFocused, setIsUsernameFocused] = useState(false);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setErrors({});
 
+    const result = loginSchema.safeParse({ email, password });
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) fieldErrors[err.path[0] as string] = err.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const success = await login(email, password);
-      if (success) {
-        toast({
-          title: "Welcome back! 🎨",
-          description: "Let's transform some spaces!",
-        });
-        navigate("/dashboard");
-      } else {
+      const { error } = await login(email, password);
+      if (error) {
         toast({
           title: "Login failed",
-          description: "Please check your credentials",
+          description: error,
           variant: "destructive",
         });
+      } else {
+        toast({ title: "Welcome back! 🎨", description: "Let's transform some spaces!" });
+        navigate("/dashboard");
       }
-    } catch (error) {
-      toast({
-        title: "Something went wrong",
-        description: "Please try again",
-        variant: "destructive",
-      });
+    } catch {
+      toast({ title: "Something went wrong", description: "Please try again", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -49,44 +60,29 @@ const Login = () => {
 
   return (
     <div className="min-h-screen gradient-hero flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Floating decorative elements */}
       <div className="absolute top-20 left-10 w-20 h-20 rounded-full bg-primary/10 animate-float" style={{ animationDelay: "0s" }} />
       <div className="absolute top-40 right-20 w-14 h-14 rounded-full bg-accent/20 animate-float" style={{ animationDelay: "1s" }} />
       <div className="absolute bottom-32 left-1/4 w-16 h-16 rounded-full bg-secondary/30 animate-float" style={{ animationDelay: "0.5s" }} />
       <div className="absolute bottom-20 right-1/3 w-12 h-12 rounded-full bg-primary/15 animate-float" style={{ animationDelay: "1.5s" }} />
-      
-      {/* Gradient orbs */}
       <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 blur-3xl" />
       <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-gradient-to-tr from-secondary/30 to-primary/10 blur-3xl" />
 
       <div className="w-full max-w-md relative z-10">
         <div className="bg-card/80 backdrop-blur-xl rounded-3xl shadow-lifted p-8 border border-border/50 animate-scale-in">
-          {/* Monkey Animation */}
-          <AnimatedMonkey 
-            isPasswordFocused={isPasswordFocused} 
-            isUsernameFocused={isUsernameFocused} 
-          />
+          <AnimatedMonkey isPasswordFocused={isPasswordFocused} isUsernameFocused={isUsernameFocused} />
 
-          {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-4">
               <Sparkles className="w-4 h-4" />
               <span className="text-sm font-medium">AI-Powered Design</span>
             </div>
-            <h1 className="text-3xl font-heading font-bold text-foreground mb-2">
-              Interior Magic
-            </h1>
-            <p className="text-muted-foreground">
-              Transform empty spaces into dream interiors
-            </p>
+            <h1 className="text-3xl font-heading font-bold text-foreground mb-2">Welcome Back</h1>
+            <p className="text-muted-foreground">Sign in to continue designing</p>
           </div>
 
-          {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">
-                Email Address
-              </Label>
+              <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
@@ -101,12 +97,16 @@ const Login = () => {
                   required
                 />
               </div>
+              {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">
-                Password
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
@@ -121,6 +121,7 @@ const Login = () => {
                   required
                 />
               </div>
+              {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
             </div>
 
             <Button
@@ -134,13 +135,16 @@ const Login = () => {
                   Signing in...
                 </span>
               ) : (
-                "Start Designing ✨"
+                "Sign In ✨"
               )}
             </Button>
           </form>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
-            Enter any email & password (4+ chars) to continue
+            Don't have an account?{" "}
+            <Link to="/signup" className="text-primary font-medium hover:underline">
+              Sign up
+            </Link>
           </p>
         </div>
       </div>

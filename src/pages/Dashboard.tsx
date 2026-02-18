@@ -39,7 +39,7 @@ const designLevels = [
 ];
 
 const Dashboard = () => {
-  const { user, logout } = useAuth();
+  const { user, profile, logout } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -68,8 +68,8 @@ const Dashboard = () => {
     }
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/");
   };
 
@@ -147,7 +147,7 @@ const Dashboard = () => {
           
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground hidden sm:block">
-              Welcome, <span className="font-medium text-foreground">{user?.name}</span>
+              Welcome, <span className="font-medium text-foreground">{profile?.display_name || user?.email?.split("@")[0]}</span>
             </span>
             <Button 
               variant="ghost" 
