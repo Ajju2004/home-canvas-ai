@@ -9,44 +9,43 @@ import ScopePage from "./pages/ScopePage";
 import TechStackPage from "./pages/TechStackPage";
 import TeamPage from "./pages/TeamPage";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Result from "./pages/Result";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Protected Route wrapper
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" /></div>;
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
 const AppRoutes = () => {
-  const { isAuthenticated } = useAuth();
-  
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" /></div>;
+  }
+
   return (
     <Routes>
-      {/* Public Pages */}
       <Route path="/" element={<HomePage />} />
       <Route path="/scope" element={<ScopePage />} />
       <Route path="/tech-stack" element={<TechStackPage />} />
       <Route path="/team" element={<TeamPage />} />
-      
-      {/* Auth */}
+
       <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
-      
-      {/* Protected Routes */}
-      <Route path="/dashboard" element={
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/result" element={
-        <ProtectedRoute>
-          <Result />
-        </ProtectedRoute>
-      } />
-      
+      <Route path="/signup" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Signup />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+
+      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/result" element={<ProtectedRoute><Result /></ProtectedRoute>} />
+
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
