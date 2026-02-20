@@ -176,6 +176,10 @@
   .animate-spin-slow {
     animation: spin-slow 4s linear infinite;
   }
+
+  .animate-shape-drift {
+    animation: shape-drift 10s ease-in-out infinite;
+  }
 }
 
 @keyframes float {
@@ -229,4 +233,11 @@
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+@keyframes shape-drift {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); opacity: 0.3; }
+  25% { transform: translateY(-18px) rotate(45deg) scale(1.1); opacity: 0.5; }
+  50% { transform: translateY(-8px) rotate(90deg) scale(0.95); opacity: 0.35; }
+  75% { transform: translateY(-22px) rotate(135deg) scale(1.05); opacity: 0.45; }
 }
