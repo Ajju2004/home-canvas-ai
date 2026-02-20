@@ -28,6 +28,46 @@ const FloatingParticle = ({ delay, size, x, y, duration }: { delay: number; size
   />
 );
 
+const FloatingShape = ({ type, delay, x, y, size, color, duration }: {
+  type: "ring" | "diamond" | "cross" | "triangle" | "hexagon" | "star" | "dot";
+  delay: number; x: string; y: string; size: number; color: string; duration: number;
+}) => {
+  const shapeContent: Record<string, React.ReactNode> = {
+    ring: <div className={`rounded-full border-2 ${color}`} style={{ width: size, height: size }} />,
+    diamond: <div className={`${color} rotate-45`} style={{ width: size * 0.7, height: size * 0.7, borderRadius: 3 }} />,
+    dot: <div className={`rounded-full ${color}`} style={{ width: size * 0.4, height: size * 0.4 }} />,
+    cross: (
+      <svg width={size} height={size} viewBox="0 0 24 24">
+        <path d="M12 2v20M2 12h20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className={color.replace("bg-", "text-").replace("border-", "text-")} />
+      </svg>
+    ),
+    triangle: (
+      <svg width={size} height={size} viewBox="0 0 24 24">
+        <polygon points="12,2 22,20 2,20" fill="none" stroke="currentColor" strokeWidth="1.5" className={color.replace("bg-", "text-").replace("border-", "text-")} />
+      </svg>
+    ),
+    hexagon: (
+      <svg width={size} height={size} viewBox="0 0 24 24">
+        <polygon points="12,2 21,7 21,17 12,22 3,17 3,7" fill="none" stroke="currentColor" strokeWidth="1.5" className={color.replace("bg-", "text-").replace("border-", "text-")} />
+      </svg>
+    ),
+    star: (
+      <svg width={size} height={size} viewBox="0 0 24 24">
+        <polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9" fill="currentColor" className={color.replace("bg-", "text-").replace("border-", "text-")} />
+      </svg>
+    ),
+  };
+
+  return (
+    <div
+      className="absolute animate-shape-drift pointer-events-none"
+      style={{ left: x, top: y, animationDelay: `${delay}s`, animationDuration: `${duration}s` }}
+    >
+      {shapeContent[type]}
+    </div>
+  );
+};
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -95,6 +135,21 @@ const Login = () => {
       <FloatingParticle delay={1.8} size={7} x="50%" y="10%" duration={6.5} />
       <FloatingParticle delay={0.8} size={9} x="90%" y="50%" duration={7.5} />
       <FloatingParticle delay={3} size={4} x="30%" y="45%" duration={9} />
+
+      {/* Floating geometric shapes */}
+      <FloatingShape type="ring" delay={0} x="5%" y="12%" size={28} color="border-primary/20" duration={10} />
+      <FloatingShape type="diamond" delay={1.5} x="88%" y="25%" size={22} color="bg-accent/15" duration={12} />
+      <FloatingShape type="triangle" delay={0.8} x="15%" y="65%" size={32} color="text-primary/15" duration={14} />
+      <FloatingShape type="cross" delay={2.2} x="78%" y="78%" size={20} color="text-muted-foreground/15" duration={11} />
+      <FloatingShape type="hexagon" delay={3} x="92%" y="8%" size={26} color="text-accent/20" duration={13} />
+      <FloatingShape type="star" delay={1} x="8%" y="88%" size={18} color="text-primary/10" duration={15} />
+      <FloatingShape type="dot" delay={0.3} x="45%" y="5%" size={20} color="bg-primary/12" duration={9} />
+      <FloatingShape type="ring" delay={2.5} x="70%" y="55%" size={20} color="border-accent/15" duration={11} />
+      <FloatingShape type="diamond" delay={3.5} x="35%" y="90%" size={18} color="bg-secondary/20" duration={13} />
+      <FloatingShape type="triangle" delay={1.8} x="60%" y="3%" size={24} color="text-accent/12" duration={16} />
+      <FloatingShape type="hexagon" delay={0.5} x="25%" y="35%" size={22} color="text-primary/8" duration={17} />
+      <FloatingShape type="cross" delay={4} x="55%" y="92%" size={16} color="text-primary/10" duration={12} />
+      <FloatingShape type="star" delay={2.8} x="95%" y="40%" size={14} color="text-accent/15" duration={10} />
 
       {/* Card */}
       <div className={`w-full max-w-md relative z-10 transition-all duration-700 ease-out ${mounted ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-8 scale-95"}`}>
